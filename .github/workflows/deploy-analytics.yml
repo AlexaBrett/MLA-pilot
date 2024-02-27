@@ -1,7 +1,6 @@
 name: Deploy Analytics to AWS ECR
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
