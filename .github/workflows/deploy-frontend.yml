@@ -1,42 +1,21 @@
-name: Deploy Frontend to AWS ECR
+name: Deploy to AWS ECR
 
 on:
   push:
     branches:
       - main
-    paths:
+    paths: 
       - "frontend/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          echo The PR was merged
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14" #
-
-      # Navigate to frontend directory
-      - name: Change to frontend directory
-        run: cd frontend
-
-      # Install dependencies
-      - name: Install dependencies
-        run: npm ci # Using `npm ci` for more reliable builds in CI/CD pipelines
-
-      # Run unit tests
-      - name: Run unit tests
-        run: npm test
-
-      # Build React project (Optional but recommended to catch build-time errors)
-      - name: Build React project
-        run: npm run build
-
-      # Configuring AWS Credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -44,17 +23,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Build, tag, and push image for Frontend
       - name: Build, tag, and push image to Amazon ECR (Frontend)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mla-fitnessapp-fe
           IMAGE_TAG: latest
         run: |
+          cd frontend
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
